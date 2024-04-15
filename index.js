@@ -188,62 +188,54 @@ app.post("/order", async (req, res) => {
   const {userid, cart} = req.body;
 
   console.log(cart);
-  let order;
+  let order = 0;
 
-  for (let i = 0; i < cart.length; i++) {
-    for (let j = 0; j < menyItems.length; j++) {
-      if (
-        menyItems[j].title == cart[i].item.title &&
-        menyItems[j].price == cart[i].item.price
-      ) {
-        console.log("YES");
-        order = {
-          ordernumber: uuidv4(),
-          user: userid ? userid : "Gäst",
-          eta: Math.floor(Math.random() * 30),
-          cart: cart,
-        };
+  const check = cart.map((cartItem) => {
+    return menu.find(
+      ({title, price}) =>
+        title === cartItem.item.title && price === cartItem.item.price
+    );
+  });
 
-        await orders.insert(order);
-        console.log(order);
-      }
-    }
+  if (check.every((element) => typeof element !== "undefined")) {
+    order = {
+      ordernumber: uuidv4(),
+      user: userid ? userid : "Gäst",
+      eta: Math.floor(Math.random() * 30),
+      cart: cart,
+    };
+
+    await orders.insert(order);
+    console.log(order);
   }
 
+  console.log(check);
+
+  // for ( let i = 0; i < cart.length; i++ ) {
+  //     for( let j = 0; j < menyItems.length; j++ ) {
+  //         if ( menyItems[j].title == cart[i].item.title && menyItems[j].price == cart[i].item.price) {
+  //             console.log('YES')
+  //               order = {
+  //                 ordernumber: uuidv4(),
+  //                 user: userid ? userid : 'Gäst',
+  //                 eta: Math.floor(Math.random() * 30),
+  //                 cart: cart
+  //                 }
+
+  //             await orders.insert(order)
+  //             console.log(order);
+  //             }
+  //             }}
+
   try {
-    res.status(200).json({
-      message: "Order sent!",
-      eta: order.eta,
-      ordernummer: order.ordernumber,
-    });
+    res
+      .status(200)
+      .json({
+        message: "Order sent!",
+        eta: order.eta,
+        ordernummer: order.ordernumber,
+      });
   } catch (error) {
     res.status(400).send("Order misslyckades!");
-  }
-});
-
-app.get("/user/orderhistory", async (req, res) => {
-  const {userid} = req.body;
-
-  if (
-    !(
-      userid === "Gäst" ||
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
-        userid
-      )
-    )
-  ) {
-    res.status(404).send("Wrong userID, must be UUID or (Gäst)");
-    return;
-  }
-
-  try {
-    const orderHistory = await orders.find({user: userid});
-    if (orderHistory.length === 0) {
-      res.status(404).send("No users found with this userID");
-    } else {
-      res.status(200).json(orderHistory);
-    }
-  } catch (error) {
-    res.status(500).send("Server error while fetching order history");
   }
 });

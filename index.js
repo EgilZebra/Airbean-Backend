@@ -199,9 +199,29 @@ app.post("/order", async (req, res) => {
   }
 });
 
-app.get("/user/orderhistory", (req, res) => {
+app.get("/user/orderhistory", async (req, res) => {
   const {userid} = req.body;
 
-  const orderHistory = orders.find({user: userid});
-  console.log(orderHistory);
+  if (
+    !(
+      userid === "Gäst" ||
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
+        userid
+      )
+    )
+  ) {
+    res.status(404).send("Felaktigt userID, det måste vara UUID eller Gäst");
+    return;
+  }
+
+  try {
+    const orderHistory = await orders.find({user: userid});
+    if (orderHistory.length === 0) {
+      res.status(404).send("Finns inga ordrar på detta userID");
+    } else {
+      res.status(200).json(orderHistory);
+    }
+  } catch (error) {
+    res.status(500).send("Serverfel vid hämtning av orderhistorik");
+  }
 });

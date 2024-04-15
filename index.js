@@ -154,23 +154,40 @@ app.post( '/order', async ( req, res ) => {
 
     
         console.log(cart);
-        let order
-    
-        for ( let i = 0; i < cart.length; i++ ) {
-            for( let j = 0; j < menyItems.length; j++ ) {
-                if ( menyItems[j].title == cart[i].item.title && menyItems[j].price == cart[i].item.price) {
-                    console.log('YES')
-                      order = {
-                        ordernumber: uuidv4(),
-                        user: userid ? userid : 'Gäst',
-                        eta: Math.floor(Math.random() * 30),
-                        cart: cart
-                        }
+        let order = 0;
+
+        const check = cart.map(( cartItem ) => {
+            return menu.find(({ title, price }) => title === cartItem.item.title && price === cartItem.item.price)  })
+        
+        if (check.every(element => typeof element !== 'undefined')) {
+                order = {
+                    ordernumber: uuidv4(),
+                    user: userid ? userid : 'Gäst',
+                    eta: Math.floor(Math.random() * 30),
+                    cart: cart
+                    };
     
                     await orders.insert(order)
                     console.log(order);
-                    }
-                    }}  
+        }
+
+        console.log(check)
+
+        // for ( let i = 0; i < cart.length; i++ ) {
+        //     for( let j = 0; j < menyItems.length; j++ ) {
+        //         if ( menyItems[j].title == cart[i].item.title && menyItems[j].price == cart[i].item.price) {
+        //             console.log('YES')
+        //               order = {
+        //                 ordernumber: uuidv4(),
+        //                 user: userid ? userid : 'Gäst',
+        //                 eta: Math.floor(Math.random() * 30),
+        //                 cart: cart
+        //                 }
+    
+        //             await orders.insert(order)
+        //             console.log(order);
+        //             }
+        //             }}  
 
     try {
         

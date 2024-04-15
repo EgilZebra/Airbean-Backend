@@ -10,45 +10,6 @@ const orders = new Datastore({ filename: "orders.db", autoload: true });
 
 app.use(express.json());
 
-const menyItems = [
-  {
-    id: 1,
-    title: "Bryggkaffe",
-    desc: "Bryggd på månadens bönor.",
-    price: 39,
-  },
-  {
-    id: 2,
-    title: "Caffè Doppio",
-    desc: "Bryggd på månadens bönor.",
-    price: 49,
-  },
-  {
-    id: 3,
-    title: "Cappuccino",
-    desc: "Bryggd på månadens bönor.",
-    price: 49,
-  },
-  {
-    id: 4,
-    title: "Latte Macchiato",
-    desc: "Bryggd på månadens bönor.",
-    price: 49,
-  },
-  {
-    id: 5,
-    title: "Kaffe Latte",
-    desc: "Bryggd på månadens bönor.",
-    price: 54,
-  },
-  {
-    id: 6,
-    title: "Cortado",
-    desc: "Bryggd på månadens bönor.",
-    price: 39,
-  },
-];
-
 const PORT = 9001;
 const URL = "127.0.0.1";
 
@@ -235,32 +196,5 @@ app.post("/order", async (req, res) => {
     });
   } catch (error) {
     res.status(400).send("Order misslyckades!");
-  }
-});
-
-app.get("/user/orderhistory", async (req, res) => {
-  const { userid } = req.body;
-
-  if (
-    !(
-      userid === "Gäst" ||
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
-        userid
-      )
-    )
-  ) {
-    res.status(404).send("Wrong userID, must be UUID or (Gäst)");
-    return;
-  }
-
-  try {
-    const orderHistory = await orders.find({ user: userid });
-    if (orderHistory.length === 0) {
-      res.status(404).send("No users found with this userID");
-    } else {
-      res.status(200).json(orderHistory);
-    }
-  } catch (error) {
-    res.status(500).send("Server error while fetching order history");
   }
 });

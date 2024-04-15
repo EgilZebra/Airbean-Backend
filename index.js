@@ -189,14 +189,19 @@ app.post("/order", async (req, res) => {
   }
 
   try {
-    res
-      .status(200)
-      .json({
-        message: "Order sent!",
-        eta: order.eta,
-        ordernummer: order.ordernumber,
-      });
+    res.status(200).json({
+      message: "Order sent!",
+      eta: order.eta,
+      ordernummer: order.ordernumber,
+    });
   } catch (error) {
     res.status(400).send("Order misslyckades!");
   }
+});
+
+app.get("/user/orderhistory", (req, res) => {
+  const {userid} = req.body;
+
+  const orderHistory = orders.find({user: userid});
+  console.log(orderHistory);
 });

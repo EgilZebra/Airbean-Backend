@@ -49,20 +49,6 @@ const menyItems = [
   },
 ];
 
-const aboutItems = {
-  headline: "Vårt Kaffe",
-  preamble:
-    "Pumpkin spice mug, barista cup, sit macchiato, kopi-luwak, doppio, grounds dripper, crema, strong whipped, variety extra iced id lungo half and half mazagran. Pumpkin spice.",
-  textOne:
-    "Que dark fair trade, spoon decaffeinated, barista wings whipped, as rich aftertaste, con panna milk black, arabica white rich beans single shot extra affogato. So affogato macchiato sit extraction instant grinder seasonal organic, turkish single shot, single origin, and robusta strong to go so dripper. Viennese froth, grounds caramelization skinny aromatic cup kopi-luwak, fair trade flavour, frappuccino medium, café au lait flavour cultivar ut bar instant kopi-luwak.",
-  textTwo:
-    "Roast id macchiato, single shot siphon mazagran milk fair trade est aroma a half and half and, so, galão iced to go, whipped as cream cup pumpkin spice iced. At extra, rich grinder, brewed to go, steamed half and half at, that, percolator macchiato trifecta and body as arabica dripper. In galão black java milk sit trifecta, robusta, acerbic café au lait instant shop latte. Seasonal bar shop filter aroma id, crema, affogato viennese cultivar aftertaste, seasonal, percolator cream black, galão flavour, milk aromatic turkish skinny crema.",
-  image:
-    "https://s3-alpha-sig.figma.com/img/8ff1/b748/d1177c85c176f0becf9820b16e06ef74?Expires=1713744000&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=LEf393vSSL5a2GXK~i0wO7TOVOvUoCuo9nl4ZWmZUF6vUrTN3ra3n1C6paS-f4SviAAgbIKjRHBkqLmtaxGOFbgEuvfmuewjoFpbA4mEJB65CRM77T4egUf2dMbFiwGshh~9Iu6IZ6czfwUNxaq3lKV3uChci4s7NWL1ekt4clhpyYnOdSD8EOw4zoiIvYjwEUuTakThYqWivTEIG3B3xUo0X07RJJeujfdFHZmd4bEedeObGrLXNFldSmv6XXcz5V6Qb7ZGGd0~1ZIbe8tV3dzHQEO9aZoxR4n6ExrKsplmNTg1-XrtLbzFLCSbODm77~9gG9EqZExXtcysYnNwjA__",
-  owner: "Eva Cortado",
-  position: "VD & Grundare",
-};
-
 const PORT = 9001;
 const URL = "127.0.0.1";
 
@@ -71,27 +57,44 @@ const server = app.listen(PORT, URL, () => {
 });
 
 //Menu
-app.post("/meny", async (req, res) => {
-  const { title, desc, price } = req.body;
-  const menyItem = { title, desc, price };
+app.get("/meny", async (_req, res) => {
   try {
-    const menyPost = await menu.insert(menyItem);
-    res.status(200).json(menyPost);
+    const menuItems = await menu.find({});
+    if (menuItems.length === 0) {
+      res.status(404).send("No menu items found");
+    } else {
+      res.status(200).json(menuItems);
+    }
   } catch (error) {
-    res.status(500).send("Gick inte att skapa databas!");
+    res.status(500).send("Internal Server Error");
   }
 });
 
-app.get(`/meny`, async (req, res) => {
+app.post("/meny/add", async (req, res) => {
+  const menuItem = {
+    title: req.body.title,
+    desc: req.body.desc,
+    price: req.body.price,
+  };
   try {
-    const menyGet = await menu.find({});
-    res.json(menyGet);
+    const checkDuplicate = await menu.findOne({ title: menuItem.title });
+    if (checkDuplicate) {
+      res.status(406).send("Item already exists in menu");
+      return;
+    }
+    if (!menuItem.title || !menuItem.desc || !menuItem.price) {
+      res.status(400).send("All fields (title, desc, price) are required");
+      return;
+    } else {
+      const newItem = await menu.insert(menuItem);
+      res.status(200).json(newItem);
+    }
   } catch (error) {
-    res.status(404).send("Meny finns inte!");
+    res.status(500).send("Server error");
   }
 });
 
-// About
+// Denna delen gjorde vi utöver Userstories då vi tyckte det kunde vara najs att kunna hämta information om företaget om man tex inte skulle ha tillgång till figmaskiss. Vi är medvetna om att detta kanske inte är väsentligt men vi körde på :)
 app.post("/about", async (req, res) => {
   const { headline, preamble, textOne, textTwo, image, owner, position } =
     req.body;
@@ -108,30 +111,49 @@ app.post("/about", async (req, res) => {
     const aboutPost = await about.insert(aboutItem);
     res.status(200).json(aboutPost);
   } catch (error) {
-    res.status(500).send("Gick inte att skapa databas!");
+    res.status(500).send("Could not add post to database");
   }
 });
 
-app.get(`/about`, async (req, res) => {
+app.get(`/about`, async (_req, res) => {
   try {
     const aboutGet = await about.find({});
     res.json(aboutGet);
   } catch (error) {
-    res.status(404).send("Aboute finns inte!");
+    res.status(404).send("Could not find the page..");
   }
 });
 
 // Konto och Login
-app.post("/user/create", async (req, res) => {
+app.post("/user/signup", async (req, res) => {
   const user = {
     username: req.body.username,
     email: req.body.email,
     password: req.body.password,
     userid: uuidv4(),
   };
+
   try {
-    users.insert(user);
-    res.status(201).json({ userid: user.userid, message: "User created!" });
+    const checkUsername = await users.findOne({ user: user.username });
+    if (checkUsername) {
+      res.status(406).send("Username taken, try again!");
+      return;
+    }
+    if (!user.username) {
+      res.status(400).send("You must write an username!");
+      return;
+    }
+    if (!user.email) {
+      res.status(400).send("You must write an email!");
+      return;
+    }
+    if (!user.password) {
+      res.status(400).send("You must add a password!");
+      return;
+    } else {
+      users.insert(user);
+      res.status(201).json({ userid: user.userid, message: "User created!" });
+    }
   } catch (error) {
     res.status(400).send("Cannot create user, sorry!");
   }
@@ -206,14 +228,39 @@ app.post("/order", async (req, res) => {
   //             }}
 
   try {
-    res
-      .status(200)
-      .json({
-        message: "Order sent!",
-        eta: order.eta,
-        ordernummer: order.ordernumber,
-      });
+    res.status(200).json({
+      message: "Order sent!",
+      eta: order.eta,
+      ordernummer: order.ordernumber,
+    });
   } catch (error) {
     res.status(400).send("Order misslyckades!");
+  }
+});
+
+app.get("/user/orderhistory", async (req, res) => {
+  const { userid } = req.body;
+
+  if (
+    !(
+      userid === "Gäst" ||
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
+        userid
+      )
+    )
+  ) {
+    res.status(404).send("Wrong userID, must be UUID or (Gäst)");
+    return;
+  }
+
+  try {
+    const orderHistory = await orders.find({ user: userid });
+    if (orderHistory.length === 0) {
+      res.status(404).send("No users found with this userID");
+    } else {
+      res.status(200).json(orderHistory);
+    }
+  } catch (error) {
+    res.status(500).send("Server error while fetching order history");
   }
 });

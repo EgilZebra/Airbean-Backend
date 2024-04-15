@@ -90,7 +90,7 @@ app.post("/meny/add", async (req, res) => {
       res.status(200).json(newItem);
     }
   } catch (error) {
-    res.status(500).send("Gick inte att skapa databas!");
+    res.status(500).send("Server error");
   }
 });
 
@@ -111,7 +111,7 @@ app.post("/about", async (req, res) => {
     const aboutPost = await about.insert(aboutItem);
     res.status(200).json(aboutPost);
   } catch (error) {
-    res.status(500).send("Gick inte att skapa databas!");
+    res.status(500).send("Could not add post to database");
   }
 });
 
@@ -120,7 +120,7 @@ app.get(`/about`, async (_req, res) => {
     const aboutGet = await about.find({});
     res.json(aboutGet);
   } catch (error) {
-    res.status(404).send("Aboute finns inte!");
+    res.status(404).send("Could not find the page..");
   }
 });
 
@@ -232,18 +232,18 @@ app.get("/user/orderhistory", async (req, res) => {
       )
     )
   ) {
-    res.status(404).send("Felaktigt userID, det måste vara UUID eller Gäst");
+    res.status(404).send("Wrong userID, must be UUID or (Gäst)");
     return;
   }
 
   try {
     const orderHistory = await orders.find({user: userid});
     if (orderHistory.length === 0) {
-      res.status(404).send("Finns inga ordrar på detta userID");
+      res.status(404).send("No users found with this userID");
     } else {
       res.status(200).json(orderHistory);
     }
   } catch (error) {
-    res.status(500).send("Serverfel vid hämtning av orderhistorik");
+    res.status(500).send("Server error while fetching order history");
   }
 });

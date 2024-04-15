@@ -1,12 +1,12 @@
 const express = require("express");
 const Datastore = require("nedb-promises");
-const {v4: uuidv4} = require("uuid");
+const { v4: uuidv4 } = require("uuid");
 
 const app = express();
-const menu = new Datastore({filename: "meny.db", autoload: true});
-const about = new Datastore({filename: "about.db", autoload: true});
-const users = new Datastore({filename: "users.db", autoload: true});
-const orders = new Datastore({filename: "orders.db", autoload: true});
+const menu = new Datastore({ filename: "meny.db", autoload: true });
+const about = new Datastore({ filename: "about.db", autoload: true });
+const users = new Datastore({ filename: "users.db", autoload: true });
+const orders = new Datastore({ filename: "orders.db", autoload: true });
 
 app.use(express.json());
 
@@ -72,8 +72,8 @@ const server = app.listen(PORT, URL, () => {
 
 //Menu
 app.post("/meny", async (req, res) => {
-  const {title, desc, price} = req.body;
-  const menyItem = {title, desc, price};
+  const { title, desc, price } = req.body;
+  const menyItem = { title, desc, price };
   try {
     const menyPost = await menu.insert(menyItem);
     res.status(200).json(menyPost);
@@ -93,7 +93,7 @@ app.get(`/meny`, async (req, res) => {
 
 // About
 app.post("/about", async (req, res) => {
-  const {headline, preamble, textOne, textTwo, image, owner, position} =
+  const { headline, preamble, textOne, textTwo, image, owner, position } =
     req.body;
   const aboutItem = {
     headline,
@@ -131,14 +131,14 @@ app.post("/user/create", async (req, res) => {
   };
   try {
     users.insert(user);
-    res.status(201).json({userid: user.userid, message: "User created!"});
+    res.status(201).json({ userid: user.userid, message: "User created!" });
   } catch (error) {
     res.status(400).send("Cannot create user, sorry!");
   }
 });
 
 app.get("/user/login", async (req, res) => {
-  const {username, password} = req.body;
+  const { username, password } = req.body;
 
   try {
     const myuser = await users.findOne({
@@ -153,75 +153,67 @@ app.get("/user/login", async (req, res) => {
         success: true,
       });
     } else {
-      res.json({message: "Login failed"});
+      res.json({ message: "Login failed" });
       return;
     }
   } catch (error) {
-    res.status(400).json({message: "User does not exist"});
+    res.status(400).json({ message: "User does not exist" });
   }
 });
 
 // Lägga en Order
 app.post("/order", async (req, res) => {
-  const {userid, cart} = req.body;
+  const { userid, cart } = req.body;
 
   console.log(cart);
-  let order;
+  let order = 0;
 
-  for (let i = 0; i < cart.length; i++) {
-    for (let j = 0; j < menyItems.length; j++) {
-      if (
-        menyItems[j].title == cart[i].item.title &&
-        menyItems[j].price == cart[i].item.price
-      ) {
-        console.log("YES");
-        order = {
-          ordernumber: uuidv4(),
-          user: userid ? userid : "Gäst",
-          eta: Math.floor(Math.random() * 30),
-          cart: cart,
-        };
+  const check = cart.map((cartItem) => {
+    return menu.find(
+      ({ title, price }) =>
+        title === cartItem.item.title && price === cartItem.item.price
+    );
+  });
 
-        await orders.insert(order);
-        console.log(order);
-      }
-    }
+  if (check.every((element) => typeof element !== "undefined")) {
+    order = {
+      ordernumber: uuidv4(),
+      user: userid ? userid : "Gäst",
+      eta: Math.floor(Math.random() * 30),
+      cart: cart,
+    };
+
+    await orders.insert(order);
+    console.log(order);
   }
 
+  console.log(check);
+
+  // for ( let i = 0; i < cart.length; i++ ) {
+  //     for( let j = 0; j < menyItems.length; j++ ) {
+  //         if ( menyItems[j].title == cart[i].item.title && menyItems[j].price == cart[i].item.price) {
+  //             console.log('YES')
+  //               order = {
+  //                 ordernumber: uuidv4(),
+  //                 user: userid ? userid : 'Gäst',
+  //                 eta: Math.floor(Math.random() * 30),
+  //                 cart: cart
+  //                 }
+
+  //             await orders.insert(order)
+  //             console.log(order);
+  //             }
+  //             }}
+
   try {
-    res.status(200).json({
-      message: "Order sent!",
-      eta: order.eta,
-      ordernummer: order.ordernumber,
-    });
+    res
+      .status(200)
+      .json({
+        message: "Order sent!",
+        eta: order.eta,
+        ordernummer: order.ordernumber,
+      });
   } catch (error) {
     res.status(400).send("Order misslyckades!");
-  }
-});
-
-app.get("/user/orderhistory", async (req, res) => {
-  const {userid} = req.body;
-
-  if (
-    !(
-      userid === "Gäst" ||
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
-        userid
-      )
-    )
-  ) {
-    res.status(404).send("Felaktigt userID, det måste vara UUID eller Gäst");
-    return;
-  }
-
-  try {
-    const orderHistory = await orders.find({user: userid});
-    if (orderHistory.length === 0) {
-      res.status(404).send("Finns inga ordrar på detta userID");
-    } else {
-      res.status(200).json(orderHistory);
-    }
-  } catch (error) {
-    res.status(500).send("Serverfel vid hämtning av orderhistorik");
   }
 });

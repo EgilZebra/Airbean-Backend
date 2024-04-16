@@ -18,5 +18,5 @@ const PORT = 9001;
 const URL = "127.0.0.1";
 
 const server = app.listen(PORT, URL, () => {
-  console.log("Hej jag är en server!");
+  console.log("Airbean loaded!");
 });

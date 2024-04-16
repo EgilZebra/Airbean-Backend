@@ -14,11 +14,12 @@ order.use(express.json());
 
 // Lägga en Order
 order.post("/order", async (req, res) => {
-  const { userid, cart } = req.body;
 
+  const { userid, cart } = req.body;
   let order = 0;
   let check = [];
   const mymenu = await menuData.find({});
+  const date = new Date();
 
   for (const item of cart) {
     const menuItem = mymenu.find(
@@ -34,20 +35,44 @@ order.post("/order", async (req, res) => {
       order = {
         ordernumber: uuidv4(),
         user: userid ? userid : "Gäst",
-        eta: Math.floor(Math.random() * 30),
+        eta: Math.floor(Math.random() * 31),
+        placed: date.toLocaleString() ,
         cart: cart,
       };
 
       await orderData.insert(order);
       res.status(200).json({
         message: "Order sent!",
+        placed: date.toLocaleString(),
         eta: order.eta,
-        ordernummer: order.ordernumber,
+        ordernummer: order.ordernumber
       });
     }
   } catch (error) {
     res.status(400).send("Order misslyckades!");
   }
 });
+
+order.get('/order/status', async ( req, res ) => {
+  const ordernumber = req.body.ordernumber;
+  console.log(ordernumber)
+  
+    try {
+      if (ordernumber === undefined) {
+        res.status(404).send('Felaktig request')
+      }
+
+      const order = await orderData.findOne({ordernumber: ordernumber })
+      console.log(order);
+      
+      if ( order !== null) {
+        res.status(200).json({'Din order': order })
+      } else {
+      res.status(500).send('Det finns ingen order med det ordernumret!')
+    }
+    } catch (error) {
+      res.status(500).send('Reqeuest Error!');
+    }
+})
 
 module.exports = order;

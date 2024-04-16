@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "express": "^4.19.2",
+    "nedb-promises": "^6.2.3",
+    "nodemon": "^3.1.0",
+    "uuid": "^9.0.1"
+  },
+  "name": "airbean-backend",
+  "description": "Gruppövning i Backend API.",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

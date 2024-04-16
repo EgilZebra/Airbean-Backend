@@ -49,7 +49,6 @@ const menyItems = [
       }
     ]
   
-
 const aboutItems = {
     "headline": "Vårt Kaffe",
     "preamble": "Pumpkin spice mug, barista cup, sit macchiato, kopi-luwak, doppio, grounds dripper, crema, strong whipped, variety extra iced id lungo half and half mazagran. Pumpkin spice.",
@@ -59,7 +58,6 @@ const aboutItems = {
     "owner": "Eva Cortado",
     "position": "VD & Grundare"
 }
-
 
 const PORT = 9001;
 const URL = '127.0.0.1';
@@ -151,47 +149,33 @@ app.get( '/user/login', async ( req, res ) => {
 // Lägga en Order
 app.post( '/order', async ( req, res ) => {
     const { userid, cart } = req.body
-
     
-        console.log(cart);
-        let order = 0;
+        let order = 0
+        let check = []
+        const mymenu = await menu.find({});
 
-        const check = cart.map(( cartItem ) => {
-            return menu.find(({ title, price }) => title === cartItem.item.title && price === cartItem.item.price)  })
-        
-        if (check.every(element => typeof element !== 'undefined')) {
-                order = {
-                    ordernumber: uuidv4(),
-                    user: userid ? userid : 'Gäst',
-                    eta: Math.floor(Math.random() * 30),
-                    cart: cart
-                    };
-    
-                    await orders.insert(order)
-                    console.log(order);
+
+        for ( const item of cart ) {
+            const menuItem = mymenu.find(menuItem => (menuItem.title === item.item.title && menuItem.price === item.item.price))
+            check.push(menuItem);
+            console.log('menuitem', menuItem);
         }
-
-        console.log(check)
-
-        // for ( let i = 0; i < cart.length; i++ ) {
-        //     for( let j = 0; j < menyItems.length; j++ ) {
-        //         if ( menyItems[j].title == cart[i].item.title && menyItems[j].price == cart[i].item.price) {
-        //             console.log('YES')
-        //               order = {
-        //                 ordernumber: uuidv4(),
-        //                 user: userid ? userid : 'Gäst',
-        //                 eta: Math.floor(Math.random() * 30),
-        //                 cart: cart
-        //                 }
-    
-        //             await orders.insert(order)
-        //             console.log(order);
-        //             }
-        //             }}  
-
+  
     try {
         
-        res.status(200).json({ message: 'Order sent!', eta: order.eta, ordernummer: order.ordernumber });
+        if ((check.every(({element}) => element !== 'undefined'))) {
+            
+            order = {
+                ordernumber: uuidv4(),
+                user: userid ? userid : 'Gäst',
+                eta: Math.floor(Math.random() * 30),
+                cart: cart
+                };
+
+            await orders.insert(order)
+            res.status(200).json({ message: 'Order sent!', eta: order.eta, ordernummer: order.ordernumber });  
+    } 
+        
     } catch (error) {
         res.status(400).send('Order misslyckades!')
     }}

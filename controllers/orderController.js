@@ -43,7 +43,7 @@ module.exports = {
             });
           }
         } catch (error) {
-          res.status(400).send("Order misslyckades!");
+          res.status(400).send("Order Failed!");
         }
       },
 
@@ -53,16 +53,16 @@ module.exports = {
         
           try {
             if (ordernumber === undefined) {
-              res.status(404).send('Felaktig request')
+              res.status(404).send('Faulty request')
             }
       
             const order = await orderData.findOne({ordernumber: ordernumber })
             console.log(order);
             
             if ( order !== null) {
-              res.status(200).json({'Din order': order })
+              res.status(200).json({'Your order': order })
             } else {
-            res.status(500).send('Det finns ingen order med det ordernumret!')
+            res.status(500).send('There are no orders with that id!')
           }
           } catch (error) {
             res.status(500).send('Reqeuest Error!');

@@ -1,10 +1,10 @@
 const express = require("express");
 
 //modules
-const about = require("./about.js");
-const { menu } = require("./menu.js");
-const user = require("./user.js");
-const order = require("./order.js");
+const about = require("./routes/about.js");
+const menu = require("./routes/menu.js");
+const user = require("./routes/user.js");
+const order = require("./routes/order.js");
 
 const app = express();
 

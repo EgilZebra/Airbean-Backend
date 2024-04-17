@@ -1,11 +1,11 @@
 const Datastore = require("nedb-promises");
-
 const menuData = new Datastore({
   filename: "./databases/menu.db",
   autoload: true,
 });
 
 module.exports = {
+
     get : async (_req, res) => {
         try {
           const menuItems = await menuData.find({});
@@ -18,6 +18,7 @@ module.exports = {
           res.status(500).send("Internal Server Error");
         }
       },
+
     post: async (req, res) => {
         const menuItem = {
           title: req.body.title,
@@ -41,5 +42,7 @@ module.exports = {
           res.status(500).send("Server error");
         }
       },
+
       menuData
+
 }

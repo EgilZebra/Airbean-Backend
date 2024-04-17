@@ -1,11 +1,11 @@
 const Datastore = require("nedb-promises");
-
 const aboutData = new Datastore({
     filename: "./databases/about.db",
     autoload: true,
   });
 
 module.exports = {
+
     get: async (_req, res) => {
         try {
           const aboutGet = await aboutData.find({});
@@ -14,6 +14,7 @@ module.exports = {
           res.status(404).send("Could not find the page..");
         }
       },
+
     post: async (req, res) => {
         const { headline, preamble, textOne, textTwo, image, owner, position } =
           req.body;

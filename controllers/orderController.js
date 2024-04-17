@@ -1,15 +1,14 @@
 const { v4: uuidv4 } = require("uuid");
 const { menuData } = require("../controllers/menuController");
 const Datastore = require("nedb-promises");
-
 const orderData = new Datastore({
   filename: "./databases/orders.db",
   autoload: true,
 });
 
 module.exports = {
+  
     post:  async (req, res) => {
-
         const { userid, cart } = req.body;
         let order = 0;
         let check = [];
@@ -47,6 +46,7 @@ module.exports = {
           res.status(400).send("Order misslyckades!");
         }
       },
+
       get: async ( req, res ) => {
         const ordernumber = req.body.ordernumber;
         console.log(ordernumber)

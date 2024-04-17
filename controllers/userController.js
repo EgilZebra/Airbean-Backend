@@ -1,6 +1,5 @@
 const { v4: uuidv4 } = require("uuid");
 const Datastore = require("nedb-promises");
-
 const usersData = new Datastore({
     filename: "./databases/users.db",
     autoload: true,

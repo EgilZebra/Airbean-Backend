@@ -17,6 +17,6 @@ app.use("/api", order);
 const PORT = 9001;
 const URL = "127.0.0.1";
 
-const server = app.listen(PORT, URL, () => {
+app.listen(PORT, URL, () => {
   console.log("Airbean loaded!");
 });

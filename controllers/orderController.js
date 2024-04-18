@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
 const { menuData } = require("../controllers/menuController");
+const { usersData } = require('../controllers/userController')
 const Datastore = require("nedb-promises");
 const orderData = new Datastore({
   filename: "./databases/orders.db",
@@ -47,7 +48,7 @@ module.exports = {
         }
       },
 
-      get: async ( req, res ) => {
+      get: {order: async ( req, res ) => {
         const ordernumber = req.body.ordernumber;
         console.log(ordernumber)
         
@@ -67,5 +68,26 @@ module.exports = {
           } catch (error) {
             res.status(500).send('Reqeuest Error!');
           }
-      }
+      },
+    history: async ( req, res ) => {
+      const myuserid = req.body.userid;
+
+      const userdata = await usersData.find({})
+      const idexist = await userdata.find(userid => userid === myuserid)
+      
+        try {
+          if (myuserid === undefined) {
+            res.status(404).send('Faulty request')
+          } else if ( idexist === undefined ) {
+            res.status(500).send('There are no orders with that id!')
+          } else {
+            const orders = await orderData.find({user: myuserid })
+            console.log('orders:',orders);
+            res.status(200).json({'Your orders': orders })
+          } 
+
+        } catch (error) {
+          res.status(500).send('Reqeuest Error!');
+        }
+    }}
 }

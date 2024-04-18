@@ -62,5 +62,7 @@ module.exports = {
         } catch (error) {
           res.status(400).json({ message: "User does not exist" });
         }
-      }
+      },
+
+      usersData
 }

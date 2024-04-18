@@ -147,7 +147,7 @@ app.get("/user/login", async (req, res) => {
 // Lägga en Order
 app.post("/order", async (req, res) => {
   const {userid, cart} = req.body;
-
+  const date = new Date();
   console.log(cart);
   let order = 0;
 
@@ -164,6 +164,7 @@ app.post("/order", async (req, res) => {
       user: userid ? userid : "Gäst",
       eta: Math.floor(Math.random() * 30),
       cart: cart,
+      placed: date.toLocaleString(),
     };
 
     await orders.insert(order);
@@ -198,3 +199,16 @@ app.post("/order", async (req, res) => {
     res.status(400).send("Order misslyckades!");
   }
 });
+
+const getEta = () => {
+  const date = new Date();
+  const randomNumber = Math.floor(Math.random() * 59) + 1;
+
+  // date.setMinutes(date.getMinutes() + randomNumber);
+  console.log(
+    "beställningen lades: " + date.toLocaleString(),
+    "ETA:" + randomNumber + "min"
+  );
+};
+
+getEta();
